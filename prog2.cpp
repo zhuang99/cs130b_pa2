@@ -1,10 +1,11 @@
 #include <iostream>
 #include <string>
 #include <ctime>
-#include <math.h>
+#include <cmath>
 #include <set>
 #include <vector>
 #include <sstream>
+
 using namespace std;
 
 #define MAX_V 100
