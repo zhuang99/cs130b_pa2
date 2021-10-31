@@ -24,99 +24,58 @@ struct Edges
     int dest;
     double weight;
 };
-class Edge
-{
-public:
-    int src, dest;
-    double weight;
-};
-class Graph
-{
-public:
-    int V; //number of vertices
-    int E; //number of edges
-    Edge *edge;
-};
-Graph *createGraph(int V, int E)
-{
-    Graph *graph = new Graph;
-    graph->V = V;
-    graph->E = E;
-    graph->edge = new Edge[E];
-    return graph;
-}
 
-class subset
-{
-public:
-    int parent;
-    int rank;
-};
 float distance(Vertics v1, Vertics v2)
 {
     return sqrt(pow(v2.x - v1.x, 2) + pow(v2.y - v1.y, 2));
 }
-int find(subset subsets[],int i){
-    if(subsets[i].parent != i){
-        subsets[i].parent = find(subsets,subsets[i].parent);
-    }
-    return subsets[i].parent;
-}
-void Union(subset subsets[],int x,int y){
-    int xroot = find(subsets,x);
-    int yroot = find(subsets,y);
-    if(subsets[xroot].rank<subsets[yroot].rank){
-        subsets[xroot].parent = yroot;
-    }else if(subsets[xroot].rank > subsets[yroot].rank){
-        subsets[yroot].parent = xroot;
-    } else {
-        subsets[yroot].parent = xroot;
-        subsets[xroot].rank++;
-    }
-        
-    
-}
-int myComp(const void* a, const void* b){
-    Edge* a1 = (Edge*)a;
-    Edge* b1 = (Edge*)b;
-    return a1->weight > b1->weight;
-}
-void KruskalMST(Graph *graph2)
+void printMST(vector<int> parent, vector<vector<double>> graph, int n)
 {
-    int V = graph2->V;
-    Edge * result =new Edge[V];
-    int e=0;
-    int i=0;
-    qsort(graph2->edge,graph2->E,sizeof(graph2->edge[0]),myComp);
-    subset* subsets = new subset[(V*sizeof(subset))];
-    for (size_t v = 0; v < V; v++)
-    {
-        subsets[v].parent = v;
-        subsets[v].rank = 0;
+    cout << "Edge \tWeight\n";
+    for (int i = 1; i < n; i++)
+        cout << parent[i] << " - " << i << " \t" << graph[i][parent[i]] << " \n";
+}
+int minKey(vector<double> key, vector<bool> mstSet, int n)
+{
+    // Initialize min value
+    int min = INT_MAX;
+    int min_index;
 
+    for (int v = 0; v < n; v++)
+        if (mstSet[v] == false && key[v] < min)
+            min = key[v], min_index = v;
+
+    return min_index;
+}
+void primMST(vector<vector<double>> graph, int n)
+{
+    vector<int> parent;
+    vector<double> key;
+    vector<bool> mstSet;
+    for (size_t i = 0; i < n; i++)
+    {
+        parent.push_back(-1);
+        key.push_back(INT_MAX);
+        mstSet.push_back(false);
     }
-    while(e<V-1 && i<graph2->E){
-        Edge next_edge = graph2->edge[i++];
-        int x = find(subsets,next_edge.src);
-        int y = find(subsets,next_edge.dest);
-        cout<<"x= "<<x<<" y= "<<y<<endl;
-        if(x!= y){
-            result[e++] = next_edge;
-            Union(subsets,x,y);
+    
+    key.at(0) = 0;
+    parent.at(0) = -1;
+
+    for (size_t i = 0; i < n - 1; i++)
+    {
+        int u = minKey(key, mstSet, n);
+        mstSet.at(u) = true;
+        for (size_t j = 0; j < n; j++)
+        {
+            if (graph.at(u).at(j) && mstSet.at(j) == false && graph.at(u).at(j) < key.at(j))
+            {
+                parent.at(j) = u;
+                key.at(j) = graph.at(u).at(j);
+            }
         }
     }
-    
-    cout<<"result"<<endl;
-    int minimumCost = 0;
-    for (size_t i = 0; i <e; i++)
-    {
-      cout << result[i].src << " -- " << result[i].dest
-             << " == " << result[i].weight << endl;
-        minimumCost = minimumCost + result[i].weight;
-    }
-    
-    
-
+    printMST(parent,graph,n);
 }
 
 //the mst will ouput n-1 Edges
@@ -186,62 +145,64 @@ int main()
     {
         edges.push_back(make_pair(b[i], b[i + 1]));
     }
-
+    
     for (size_t i = 0; i < m; i++)
     {
-
+        
         eg[i].src = edges[i].first;
         eg[i].dest = edges[i].second;
         eg[i].weight = distance(v[eg[i].src], v[eg[i].dest]);
     }
 
+
     vector<vector<double>> graph;
 
+   
     for (size_t i = 0; i < n; i++)
     {
-
+        
+        
         vector<double> temp_graph;
         for (size_t i = 0; i < n; i++)
         {
             temp_graph.push_back(0);
         }
-
+        
         for (size_t j = 0; j < m; j++)
         {
-            if (eg[j].src == i)
-            {
+            if(eg[j].src == i){
                 temp_graph[eg[j].dest] = eg[j].weight;
+
+                
             }
+          
         }
         graph.push_back(temp_graph);
+
+
     }
     for (size_t i = 0; i < n; i++)
     {
-        if (graph[i][n - 1] != 0)
-        {
-            graph[n - 1][i] = graph[i][n - 1];
+        if(graph[i][n-1] != 0){
+            graph[n-1][i] = graph[i][n-1];
         }
     }
+    
 
     for (size_t i = 0; i < graph.size(); i++)
     {
-        cout << "{ ";
-        for (int j = 0; j < graph[i].size(); j++)
-        {
-            cout << graph[i][j] << " ";
+        cout<<"{ ";
+        for(int j = 0; j < graph[i].size();j++){
+            cout<<graph[i][j]<<" ";
         }
-        cout << "} " << endl;
-    }
+        cout<<"} "<<endl;
 
-    Graph *graph2 = createGraph(n, m);
-    for (size_t i = 0; i < m; i++)
-    {
-        graph2->edge[i].src = eg[i].src;
-        graph2->edge[i].dest = eg[i].dest;
-        graph2->edge[i].weight = eg[i].weight;
-        cout<<graph2->edge[i].src<<", "<< graph2->edge[i].dest<<" , "<<graph2->edge[i].weight<<endl;
     }
-
     
-    KruskalMST(graph2);
+    
+   
+    // time_t c_start, c_end;
+    // c_start = clock();
+    primMST(graph, n);
+    // c_end = clock();
 }
